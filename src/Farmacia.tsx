@@ -110,7 +110,7 @@ export default function Dashboard() {
       </section>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {STATUS_ORDER.map((status) => (
             <div key={status} className="space-y-3">
               <Skeleton className="h-8 w-32" />
@@ -132,8 +132,13 @@ export default function Dashboard() {
 
               <div className="space-y-3 min-h-[200px]">
                 {ordersByStatus[status].length === 0 ? (
-                  <div className="flex items-center justify-center h-32 border-2 border-dashed rounded-xl text-gray-500 text-sm">
-                    Nenhum pedido
+                  <div className="grid gap-3">
+                    <div className="flex items-center justify-center h-32 border-2 border-dashed rounded-xl text-gray-500 text-sm">
+                      Nenhum pedido
+                    </div>
+                    <div className="flex items-center justify-center h-32 border-2 border-dashed rounded-xl text-gray-500 text-sm">
+                      Nenhum pedido
+                    </div>
                   </div>
                 ) : (
                   ordersByStatus[status].map((order) => (
