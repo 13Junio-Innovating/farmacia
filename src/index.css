@@ -25,8 +25,12 @@ html, body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ari
 
 .input { width: 100%; border: 1px solid #e5e7eb; border-radius: 16px; padding: 0.5rem 0.75rem; background-color: #fff; }
 
-.btn { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid #e5e7eb; border-radius: 16px; padding: 0.5rem 0.75rem; background-color: #fff; }
- .btn-active { background-color: var(--color-brand-blue); color: #fff; border-color: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid #e5e7eb; border-radius: 16px; padding: 0.5rem 0.75rem; background-color: #fff; transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.btn:hover { border-color: #cbd5e1; }
+.btn-active { background-color: var(--color-brand-blue); color: #fff; border-color: transparent; }
+.btn-active:hover { background-color: #1e3a8a; }
+.btn-danger { background-color: var(--color-brand-red); color: #fff; border-color: transparent; }
+.btn-danger:hover { background-color: #b91c1c; }
  .nav-dashboard:hover { background-color: #1e40af; color: #fff; }
  .nav-new:hover { background-color: #facc15; color: #1e293b; border-color: transparent; }
  .nav-reports:hover { background-color: #7c3aed; color: #fff; }
