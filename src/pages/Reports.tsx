@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { useOrders } from '@/hooks/useOrders'
 import { useStores } from '@/hooks/useStores'
 import type { OrderStatus } from '@/types/orders'
+import { STATUS_LABELS } from '@/types/orders'
+import * as XLSX from 'xlsx'
 
 export default function Reports() {
   const { orders } = useOrders()
@@ -37,10 +39,87 @@ export default function Reports() {
     return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5)
   }, [orders])
 
+  function exportExcel() {
+    const sheetTotals = [
+      { Total: totals.total, Finalizados: totals.done, Pendentes: totals.pending, PercentualFinalizados: `${totals.donePct}%` },
+    ]
+    const sheetStatus = [
+      { Status: 'Recebido', Quantidade: totals.byStatus.received || 0 },
+      { Status: 'Em Manipulação', Quantidade: totals.byStatus.in_production || 0 },
+      { Status: 'Pronto', Quantidade: totals.byStatus.ready || 0 },
+      { Status: 'Enviado', Quantidade: totals.byStatus.shipped || 0 },
+    ]
+    const sheetStores = stores.map((s) => ({ Loja: s.name, Quantidade: orders.filter((o) => o.store_id === s.id).length }))
+    const sheetOrders = orders.map((o) => {
+      const parts = (o.formula || '').split('|').map((p) => p.trim())
+      const nomeFormula = parts[0] || ''
+      const detalhesFormula = parts.slice(1).join(' | ')
+      return {
+        ID: o.id,
+        Cliente: o.customer_name,
+        'Fórmula (Nome)': nomeFormula,
+        'Fórmula (Detalhes)': detalhesFormula,
+        Dosagem: o.dosage ?? '',
+        Quantidade: o.quantity ?? '',
+        Status: STATUS_LABELS[o.status],
+        Loja: o.stores?.name ?? '',
+        Telefone: o.phone ?? '',
+        'Data de Entrega': o.due_date ?? '',
+        Observações: o.observations ?? '',
+        Urgente: o.urgent ? 'Sim' : 'Não',
+        'Fórmula Completa': o.formula ?? '',
+      }
+    })
+
+    const wb = XLSX.utils.book_new()
+    const wsTotals = XLSX.utils.json_to_sheet(sheetTotals)
+    const wsStatus = XLSX.utils.json_to_sheet(sheetStatus)
+    const wsStores = XLSX.utils.json_to_sheet(sheetStores)
+    const wsOrders = XLSX.utils.json_to_sheet(sheetOrders)
+
+    function formatSheet(ws: XLSX.WorkSheet, cols: number[]) {
+      const ref = (ws as any)['!ref'] as string
+      if (ref) {
+        const r = XLSX.utils.decode_range(ref)
+        const header = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: 0, c: r.e.c } })
+        ;(ws as any)['!autofilter'] = { ref: header }
+        ;(ws as any)['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2' }
+        for (let c = 0; c <= r.e.c; c++) {
+          const addr = XLSX.utils.encode_cell({ r: 0, c })
+          const cell = (ws as any)[addr]
+          if (cell) {
+            cell.s = {
+              fill: { fgColor: { theme: 1 } },
+              font: { bold: true, color: { rgb: 'FFFFFF' } },
+              alignment: { horizontal: 'center', vertical: 'center' },
+            }
+          }
+        }
+      }
+      ;(ws as any)['!cols'] = cols.map((w) => ({ wch: w }))
+    }
+
+    formatSheet(wsTotals, [12, 12, 12, 22])
+    formatSheet(wsStatus, [18, 12])
+    formatSheet(wsStores, [28, 12])
+    formatSheet(wsOrders, [16, 22, 32, 36, 12, 10, 16, 24, 18, 26, 10, 42])
+
+    XLSX.utils.book_append_sheet(wb, wsTotals, 'Totais')
+    XLSX.utils.book_append_sheet(wb, wsStatus, 'Por Status')
+    XLSX.utils.book_append_sheet(wb, wsStores, 'Por Loja')
+    XLSX.utils.book_append_sheet(wb, wsOrders, 'Pedidos')
+    XLSX.writeFile(wb, 'relatorios_farmacia.xlsx')
+  }
+
   return (
     <main className="container py-8 space-y-6">
-      <h2 className="text-3xl font-semibold">Relatórios</h2>
-      <p className="text-gray-500">Visão geral da produção e pedidos</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-semibold">Relatórios</h2>
+          <p className="text-gray-500">Visão geral da produção e pedidos</p>
+        </div>
+        <button className="btn btn-active" onClick={exportExcel}>Exportar Excel</button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card p-4">
           <div className="text-sm text-gray-500">Total de Pedidos</div>
