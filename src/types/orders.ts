@@ -26,4 +26,10 @@ export interface Order {
   status: OrderStatus
   store_id: string
   stores?: Store
+  phone?: string
+  due_date?: string
+  dosage?: string
+  quantity?: number
+  observations?: string
+  urgent?: boolean
 }
