@@ -10,7 +10,7 @@
     "vercel-build": "vite build"
   },
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   },
   "dependencies": {
     "lucide-react": "^0.559.0",
